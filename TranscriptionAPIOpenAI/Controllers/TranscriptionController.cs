@@ -96,6 +96,83 @@ namespace TranscriptionAPIGoogle.Controllers
             }
         }
 
+        //[HttpPost]
+        //[Route("search-keywords")]
+        //public IActionResult BuscarPalavrasChave([FromBody] List<string> keywords)
+        //{
+        //    if (string.IsNullOrEmpty(ultimaTranscricao))
+        //        return BadRequest("Nenhuma transcrição disponível. Realize uma transcrição primeiro.");
+
+        //    var foundKeywords = keywords
+        //        .Where(keyword => ultimaTranscricao.Contains(keyword))
+        //        .ToList();
+
+        //    return Ok(new { keywordsFound = foundKeywords });
+        //}
+
+        //[HttpPost]
+        //[Route("search-keywords")]
+        //public IActionResult BuscarPalavrasChave([FromBody] List<string> keywords)
+        //{
+        //    if (string.IsNullOrEmpty(ultimaTranscricao))
+        //        return BadRequest("Nenhuma transcrição disponível. Realize uma transcrição primeiro.");
+
+        //    // Crie um dicionário para armazenar as palavras-chave encontradas e suas contagens
+        //    var foundKeywords = new Dictionary<string, int>();
+
+        //    // Itere sobre cada palavra-chave
+        //    foreach (var keyword in keywords)
+        //    {
+        //        // Utilize o método Count() para contar as ocorrências da palavra-chave na transcrição
+        //        int count = ultimaTranscricao.Split(' ').Count(word => word.Equals(keyword, StringComparison.OrdinalIgnoreCase));
+
+        //        // Adicione a palavra-chave e sua contagem ao dicionário
+        //        if (count > 0)
+        //        {
+        //            foundKeywords[keyword] = count;
+        //        }
+        //    }
+
+        //    return Ok(new { keywordsFound = foundKeywords });
+        //}
+
+        //[HttpPost]
+        //[Route("search-keywords")]
+        //public IActionResult BuscarPalavrasChave([FromBody] List<string> keywords)
+        //{
+        //    if (string.IsNullOrEmpty(ultimaTranscricao))
+        //        return BadRequest("Nenhuma transcrição disponível. Realize uma transcrição primeiro.");
+
+        //    // Crie um dicionário para armazenar as palavras-chave encontradas com suas marcas de tempo
+        //    var foundKeywords = new Dictionary<string, List<double>>();
+
+        //    // Converta a string da transcrição para uma lista de palavras
+        //    var words = ultimaTranscricao.Split(' ');
+
+        //    // Itere sobre as palavras da transcrição
+        //    for (int i = 0; i < words.Length; i++)
+        //    {
+        //        // Verifique se a palavra atual corresponde a alguma das palavras-chave
+        //        foreach (var keyword in keywords)
+        //        {
+        //            if (words[i].Equals(keyword, StringComparison.OrdinalIgnoreCase))
+        //            {
+        //                // Calcula a marca de tempo aproximada da palavra na transcrição
+        //                double timestamp = (double)i / words.Length * ultimaTranscricao.Length;
+
+        //                // Adiciona a palavra-chave ao dicionário, com sua marca de tempo
+        //                if (!foundKeywords.ContainsKey(keyword))
+        //                {
+        //                    foundKeywords[keyword] = new List<double>();
+        //                }
+        //                foundKeywords[keyword].Add(timestamp);
+        //            }
+        //        }
+        //    }
+
+        //    return Ok(new { keywordsFound = foundKeywords });
+        //}
+
         [HttpPost]
         [Route("search-keywords")]
         public IActionResult BuscarPalavrasChave([FromBody] List<string> keywords)
@@ -103,12 +180,40 @@ namespace TranscriptionAPIGoogle.Controllers
             if (string.IsNullOrEmpty(ultimaTranscricao))
                 return BadRequest("Nenhuma transcrição disponível. Realize uma transcrição primeiro.");
 
-            var foundKeywords = keywords
-                .Where(keyword => ultimaTranscricao.Contains(keyword, StringComparison.OrdinalIgnoreCase))
-                .ToList();
+            // Crie uma lista para armazenar os objetos com palavra-chave e tempo
+            var foundKeywords = new List<KeywordWithTimestamp>();
 
-            return Ok(new { keywordsFound = foundKeywords });
+            // Converta a string da transcrição para uma lista de palavras
+            var words = ultimaTranscricao.Split(' ');
+
+            // Itere sobre as palavras da transcrição
+            for (int i = 0; i < words.Length; i++)
+            {
+                // Verifique se a palavra atual corresponde a alguma das palavras-chave
+                foreach (var keyword in keywords)
+                {
+                    if (words[i].Equals(keyword, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Calcula a marca de tempo aproximada da palavra na transcrição
+                        double timestamp = (double)i / words.Length * ultimaTranscricao.Length;
+
+                        // Cria um objeto KeywordWithTimestamp e adiciona à lista
+                        foundKeywords.Add(new KeywordWithTimestamp { Keyword = keyword, Timestamp = timestamp });
+                    }
+                }
+            }
+
+            return Ok(foundKeywords);
         }
+
+        // Classe para representar uma palavra-chave com sua marca de tempo
+        public class KeywordWithTimestamp
+        {
+            public string Keyword { get; set; }
+            public double Timestamp { get; set; }
+        }
+
+
 
         private class TranscriptionResponse
         {
